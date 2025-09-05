@@ -10,7 +10,6 @@ import javax.swing.JPanel;
 public class Carta {
 
     public int indice;
-
     public Carta(Random r) {
         indice = r.nextInt(52) + 1;
     }
