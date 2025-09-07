@@ -78,12 +78,10 @@ public class FrmJuego extends JFrame {
         int pestaña=tpJugadores.getSelectedIndex();
         switch (pestaña) {
             case 0:
-               JOptionPane.showMessageDialog(null, jugador1.getGrupos());
-               JOptionPane.showMessageDialog(null, jugador1.getEscaleras());
+               JOptionPane.showMessageDialog(null, jugador1.getResumen());
                 break;
             case 1:
-                JOptionPane.showMessageDialog(null, jugador2.getGrupos());
-                JOptionPane.showMessageDialog(null, jugador2.getEscaleras());
+                JOptionPane.showMessageDialog(null, jugador2.getResumen());
                 break;
         }
 

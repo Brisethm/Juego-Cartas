@@ -23,54 +23,63 @@ public class Jugador {
         pnl.repaint();
     }
 
-    public String getGrupos() {
-        String resultado = "No se encontraron grupos";
-        //iniciar los contadores
+    public String getResumen() {
+        String resultado = "";
+
+        // GRUPOS
+
         int[] contadores = new int[13];
         for (Carta carta : cartas) {
             contadores[carta.getNombre().ordinal()]++;
         }
-        //obtener los resultados
+
         boolean hayGrupos = false;
+        boolean[] enGrupo = new boolean[TOTAL_CARTAS];
+
         for (int c : contadores) {
             if (c >= 2) {
                 hayGrupos = true;
             }
         }
-        if (hayGrupos) {
-            resultado = "Se encontraron los siguientes grupos:\n";
-            int p = 0;
-            for (int c : contadores) {
-                if (c >= 2) {
-                    resultado += Grupo.values()[c] + " de " + NombreCarta.values()[p] + "\n";
-                }
-                p++;
-            }
-        }
-        return resultado;
-    }
 
-    public String getEscaleras() {
-        String resultado = "No se encontraron escaleras\n";
-        boolean hayEscalera=false;
-        Carta[] cartasEnEscalera = new Carta[TOTAL_CARTAS];
-        int totalCartasEnEscalera = 0;
+        if (hayGrupos) {
+            for (int i = 0; i < contadores.length; i++) {
+                int c = contadores[i];
+                if (c >= 2) {
+                    resultado += Grupo.values()[c] + " de " + NombreCarta.values()[i] + "\n";
+                    // marcar cartas en grupo
+                    int marcadas = 0;
+                    for (int j = 0; j < TOTAL_CARTAS && marcadas < c; j++) {
+                        if (cartas[j].getNombre().ordinal() == i) {
+                            enGrupo[j] = true;
+                            marcadas++;
+                        }
+                    }
+                }
+            }
+        } else {
+            resultado += "No se encontraron grupos\n";
+        }
+
+        // ESCALERAS
+
+        boolean hayEscalera = false;
+        boolean[] enEscalera = new boolean[TOTAL_CARTAS];
 
         for (Pinta pinta : Pinta.values()) {
-            // Filtrar cartas por pinta
             Carta[] cartasDePinta = new Carta[TOTAL_CARTAS];
             int count = 0;
-            for (Carta carta : cartas) {
-                if (carta.getPinta() == pinta) {
-                    cartasDePinta[count++] = carta;
+            for (int i = 0; i < TOTAL_CARTAS; i++) {
+                if (cartas[i].getPinta() == pinta) {
+                    cartasDePinta[count++] = cartas[i];
                 }
             }
 
             if (count < 3) {
-                continue; // los grupos requieren al menos 3 cartas
+                continue;
             }
 
-            // Ordena por índice de menor a mayor
+            // ordenar
             for (int i = 0; i < count - 1; i++) {
                 for (int j = 0; j < count - i - 1; j++) {
                     if (cartasDePinta[j].indice > cartasDePinta[j + 1].indice) {
@@ -81,7 +90,6 @@ public class Jugador {
                 }
             }
 
-            // Busca escaleras consecutivas
             int inicioEscalera = 0;
             int escaleraActual = 1;
 
@@ -91,13 +99,17 @@ public class Jugador {
                 } else {
                     if (escaleraActual >= 3) {
                         hayEscalera = true;
-                        resultado = "Se encontraron las siguientes escaleras:\n";
-                        resultado += Grupo.values()[escaleraActual] + " de " + pinta.name() + "\n";
+                        resultado += "\n" + Grupo.values()[escaleraActual] + " de "
+                                + cartasDePinta[inicioEscalera].getNombre() + " a "
+                                + cartasDePinta[inicioEscalera + escaleraActual - 1].getNombre()
+                                + " de " + pinta.name() + "\n";
 
-                        // Agrega las cartas de la escalera
+                        // marcar cartas en escalera
                         for (int j = inicioEscalera; j < inicioEscalera + escaleraActual; j++) {
-                            if (totalCartasEnEscalera < TOTAL_CARTAS) {
-                                cartasEnEscalera[totalCartasEnEscalera++] = cartasDePinta[j];
+                            for (int k = 0; k < TOTAL_CARTAS; k++) {
+                                if (cartas[k] == cartasDePinta[j]) {
+                                    enEscalera[k] = true;
+                                }
                             }
                         }
                     }
@@ -107,29 +119,26 @@ public class Jugador {
             }
         }
 
-        // Calcula puntos por cartas que NO están en escaleras
-        int puntos = 0;
-        for (Carta carta : cartas) {
-            boolean enEscalera = false;
-
-             for (int j = 0; j < totalCartasEnEscalera; j++) {
-                if (cartasEnEscalera[j].getNombre() == carta.getNombre()
-                        && cartasEnEscalera[j].getPinta() == carta.getPinta()) {
-                    enEscalera = true;
-                    break;
-                }
-            }
-
-            if (!enEscalera) {
-                puntos += carta.getNombre().ordinal() + 1;
-            }
-        }
-
         if (!hayEscalera) {
-            resultado = "No se encontraron escaleras\n";
+            resultado += "\n" + "No se encontraron escaleras\n";
         }
-        resultado += "Puntos por cartas no en escalera: " + puntos;
+
+        // SOBRANTES
+
+        resultado += "\nSobran:\n";
+        int puntos = 0;
+        for (int i = 0; i < TOTAL_CARTAS; i++) {
+            if (!enGrupo[i] && !enEscalera[i]) {
+                resultado += cartas[i].getNombre() + " de " + cartas[i].getPinta() + "\n";
+                puntos += cartas[i].getNombre().ordinal() + 1;
+            }
+        }
+
+
+        // PUNTOS
+
+        resultado += "\nPuntos: " + puntos;
+
         return resultado;
     }
-
 }
